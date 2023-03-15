@@ -1,13 +1,39 @@
 import React, { useState } from 'react';
-import logo from './logo.svg';
 import './App.css';
+
+const API_KEY = ''
 
 function App() {
   const [opponentChamps, setOpponentChamps] = useState("");
   const [allyChamps, setAllyChamps] = useState("");
+
+  const [bestPick, setBestPick] = useState("");
     
-  async function getBestChamp() {
-    console.log("Get Best Champ");
+  async function processMessageToChatGPT() {
+    const msg = `Help me pick the best champ for winning this game, opponentChamp: ${opponentChamps}, what we had: ${allyChamps}`;
+    console.log(msg);
+    const apiMessage = {
+      role: "user",
+      content: msg
+    }
+
+    const apiRequestBody = {
+      "model": "gpt-3.5-turbo",
+      "messages": [apiMessage]
+    }
+
+    await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(apiRequestBody)
+    }).then((data => {
+      return data.json();
+    })).then(data => {
+      setBestPick(data.choices[0].message.content)
+    })
   }
   
   return (
@@ -21,10 +47,11 @@ function App() {
           type="text"
           onChange={(e) => setAllyChamps(e.target.value)}
         />
-        <button onClick={getBestChamp}>
+        <button onClick={processMessageToChatGPT}>
           {" "}
           Pick the Best Champoin for this game
         </button>
+        <div>{bestPick}</div>
       </header>
     </div>
   );
